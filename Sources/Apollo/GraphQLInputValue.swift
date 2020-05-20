@@ -91,7 +91,7 @@ public protocol GraphQLMapConvertible: JSONEncodable {
 
 public extension GraphQLMapConvertible {
   var jsonValue: JSONValue {
-    return graphQLMap.withNilValuesRemoved.jsonValue
+    return graphQLMap.withNilValuesRemoved
   }
 }
 

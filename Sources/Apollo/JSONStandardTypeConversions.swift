@@ -1,6 +1,6 @@
 import Foundation
 
-extension String: JSONDecodable, JSONEncodable {
+extension String: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     switch value {
     case let string as String:
@@ -17,7 +17,7 @@ extension String: JSONDecodable, JSONEncodable {
   }
 }
 
-extension Int: JSONDecodable, JSONEncodable {
+extension Int: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     guard let number = value as? NSNumber else {
       throw JSONDecodingError.couldNotConvert(value: value, to: Int.self)
@@ -30,7 +30,7 @@ extension Int: JSONDecodable, JSONEncodable {
   }
 }
 
-extension Float: JSONDecodable, JSONEncodable {
+extension Float: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     guard let number = value as? NSNumber else {
       throw JSONDecodingError.couldNotConvert(value: value, to: Float.self)
@@ -43,7 +43,7 @@ extension Float: JSONDecodable, JSONEncodable {
   }
 }
 
-extension Double: JSONDecodable, JSONEncodable {
+extension Double: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     guard let number = value as? NSNumber else {
       throw JSONDecodingError.couldNotConvert(value: value, to: Double.self)
@@ -56,7 +56,7 @@ extension Double: JSONDecodable, JSONEncodable {
   }
 }
 
-extension Bool: JSONDecodable, JSONEncodable {
+extension Bool: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     guard let bool = value as? Bool else {
         throw JSONDecodingError.couldNotConvert(value: value, to: Bool.self)
@@ -96,54 +96,41 @@ extension Optional where Wrapped: JSONDecodable {
   }
 }
 
-// Once [conditional conformances](https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md) have been implemented, we should be able to replace these runtime type checks with proper static typing
-
-extension Optional: JSONEncodable {
+extension Optional where Wrapped: JSONEncodable {
   public var jsonValue: JSONValue {
     switch self {
-    case .none:
-      return NSNull()
-    case .some(let wrapped as JSONEncodable):
-      return wrapped.jsonValue
-    default:
-      fatalError("Optional is only JSONEncodable if Wrapped is")
+      case .none:
+        return NSNull()
+      case .some(let wrapped):
+        return wrapped.jsonValue
     }
   }
 }
 
-extension Dictionary: JSONEncodable {
+extension Dictionary where Key == String, Value == JSONEncodable? {
   public var jsonValue: JSONValue {
     return jsonObject
   }
-
+  
   public var jsonObject: JSONObject {
     var jsonObject = JSONObject(minimumCapacity: count)
     for (key, value) in self {
-      if case let (key as String, value as JSONEncodable) = (key, value) {
-        jsonObject[key] = value.jsonValue
-      } else {
-        fatalError("Dictionary is only JSONEncodable if Value is (and if Key is String)")
-      }
+      jsonObject[key] = value
     }
     return jsonObject
   }
 }
 
-extension Array: JSONEncodable {
+extension Array where Element == JSONEncodable? {
   public var jsonValue: JSONValue {
-    return map() { element -> (JSONValue) in
-      if case let element as JSONEncodable = element {
-        return element.jsonValue
-      } else {
-        fatalError("Array is only JSONEncodable if Element is")
-      }
+    return map() { element -> (JSONValue?) in
+      return element
     }
   }
 }
 
 // Example custom scalar
-
-extension URL: JSONDecodable, JSONEncodable {
+extension URL: JSONCodable {
   public init(jsonValue value: JSONValue) throws {
     guard let string = value as? String else {
       throw JSONDecodingError.couldNotConvert(value: value, to: URL.self)

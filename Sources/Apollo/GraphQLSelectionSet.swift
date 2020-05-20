@@ -17,7 +17,7 @@ public extension GraphQLSelectionSet {
   }
 
   var jsonObject: JSONObject {
-    return resultMap.jsonObject
+    return resultMap as JSONObject
   }
 }
 

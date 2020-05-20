@@ -4,6 +4,8 @@ public typealias JSONValue = Any
 
 public typealias JSONObject = [String: JSONValue]
 
+public protocol JSONCodable: JSONDecodable, JSONEncodable {}
+
 public protocol JSONDecodable {
   init(jsonValue value: JSONValue) throws
 }
